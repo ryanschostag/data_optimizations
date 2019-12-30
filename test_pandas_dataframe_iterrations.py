@@ -86,25 +86,23 @@ def test_updating_dataframe_with_values_of_another_dataframe(dataframe):
     """
     df = dataframe
     df1 = pd.DataFrame([[1896, None, None],
-                        [1809, None, None],
-                        [1987, None, None]], columns=['Edition', 'Athlete', 'Sport'])
+                        [1900, None, None],
+                        [2008, None, None]], columns=['Edition', 'Athlete', 'Sport'])
     assert isinstance(df, pd.DataFrame) and isinstance(df1, pd.DataFrame)
-    sample_athlete = 'HAJOS, Alfred'
-    sample_sport = 'Aquatics'
 
     def _update_using_iterrows(_df1, _df2):
         # df1 = dataframe to update
         # _df2 = dataframe with source values
-        for _df1_index, _df1_row in _df1.iterrows():
-            athlete = None
-            sport = None
-            if _df1_row['Edition'] in _df2['Edition']:
-                athlete = _df1_row['Athlete']
-                sport = _df1_row['Sport']
-
-            _df1.at[_df1_index, 'Athlete'] = athlete
-            _df1.at[_df1_index, 'Sport'] = sport
-
+        for _df2_index, _df2_row in _df2.iterrows():
+            for _df1_index, _df1_row in _df1.iterrows():
+                if _df1_row['Edition'] == _df2_row['Edition']:
+                    if  not _df1_row['Athlete'] and not _df1_row['Sport']:
+                        athlete = _df2_row['Athlete']
+                        sport = _df2_row['Sport']
+        
+                        _df1.at[_df1_index, 'Athlete'] = athlete
+                        _df1.at[_df1_index, 'Sport'] = sport
+    
     _update_using_iterrows(df1, df)
     raise ValueError(df1)
 
