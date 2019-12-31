@@ -3,11 +3,18 @@ import time
 import pytest
 import pandas as pd
 import cdf
+import data_methods as dm
 
 
 @pytest.fixture(scope='function')
-def dataframe():
+def olympics():
     return cdf.csv_to_df()
+
+
+@pytest.fixture(scope='function')
+def customers():
+    # A dataset full of customers
+    pass
 
 
 # Fails 1:143 because _iter_gby_dict_compregension is fatser than 
@@ -18,11 +25,11 @@ def dataframe():
     ('_iter_gby_list_comprehension', 'df.columns', False),
     ('_iter_gby_list_comprehension', 'df.columns', True),
 ])
-def test_iter_group_by(dataframe, func, columns_expected, dict_vs_list):
+def test_iter_group_by(olympics, func, columns_expected, dict_vs_list):
     """
     Performance test to test speeds of iterating through a groupby object
     """
-    df = dataframe
+    df = olympics
     assert isinstance(df, pd.DataFrame)
     gby = df.groupby('Edition')
 
@@ -79,30 +86,29 @@ def test_iter_group_by(dataframe, func, columns_expected, dict_vs_list):
         assert real_time_d > real_time_c
 
 
-def test_updating_dataframe_with_values_of_another_dataframe(dataframe):
+def test_update_using_iterrows(olympics):
+    # tests that the dm.update_using_iterrows 
+    # function works as expected
+    df1 = pd.DataFrame([[1896, None, None],
+                        [1900, None, None],
+                        [2008, None, None]], columns=['Edition', 'Athlete', 'Sport'])
+    _ = dm.update_using_iterrows(df1, olympics)
+    assert sorted(df1.columns) == ['Athlete', 'Edition', 'Sport']
+    assert df1.Athlete.notnull().all()
+    assert df1.Edition.notnull().all()
+    assert df1.Sport.notnull().all()
+
+
+def test_updating_dataframe_with_values_of_another_dataframe(olympics):
     """
     This tests the speeds of updating one dataframe with values from 
     another dataframe. It uses iterrows/at, merge, and indexing
     """
-    df = dataframe
+    df = olympics
     df1 = pd.DataFrame([[1896, None, None],
                         [1900, None, None],
                         [2008, None, None]], columns=['Edition', 'Athlete', 'Sport'])
-    assert isinstance(df, pd.DataFrame) and isinstance(df1, pd.DataFrame)
-
-    def _update_using_iterrows(_df1, _df2):
-        # df1 = dataframe to update
-        # _df2 = dataframe with source values
-        for _df2_index, _df2_row in _df2.iterrows():
-            for _df1_index, _df1_row in _df1.iterrows():
-                if _df1_row['Edition'] == _df2_row['Edition']:
-                    if  not _df1_row['Athlete'] and not _df1_row['Sport']:
-                        athlete = _df2_row['Athlete']
-                        sport = _df2_row['Sport']
-        
-                        _df1.at[_df1_index, 'Athlete'] = athlete
-                        _df1.at[_df1_index, 'Sport'] = sport
-    
-    _update_using_iterrows(df1, df)
-    raise ValueError(df1)
-
+    iterrows_start = time.time()
+    _ = dm.update_using_iterrows(df1, df)
+    iterrows_total = time.time() - iterrows_start
+    assert iterrows_total < 50
