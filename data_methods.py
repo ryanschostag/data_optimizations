@@ -27,3 +27,10 @@ def update_using_apply(target_df, source_df):
         pass
 
 
+def update_using_indexing(df1, df2, common_index_value):
+    # Updates values in df1 with values in df2
+    df1.set_index(common_index_value, inplace=True)
+    df1.update(df2.set_index(common_index_value))
+    df1.reset_index()
+    return df1
+
