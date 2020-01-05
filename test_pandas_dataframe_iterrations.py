@@ -14,7 +14,10 @@ def olympics():
 @pytest.fixture(scope='function')
 def customers():
     # A dataset full of customers
-    pass
+    df = pd.read_csv('SalesJan2009.csv')
+    ids = list(range(0, df.shape[0]))
+    df['Customer_ID'] = ids
+    return df
 
 
 # Fails 1:143 because _iter_gby_dict_compregension is fatser than 
@@ -99,16 +102,23 @@ def test_update_using_iterrows(olympics):
     assert df1.Sport.notnull().all()
 
 
-def test_updating_dataframe_with_values_of_another_dataframe(olympics):
+def test_updating_dataframe_with_values_of_another_dataframe(customers):
     """
     This tests the speeds of updating one dataframe with values from 
     another dataframe. It uses iterrows/at, merge, and indexing
     """
-    df = olympics
-    df1 = pd.DataFrame([[1896, None, None],
-                        [1900, None, None],
-                        [2008, None, None]], columns=['Edition', 'Athlete', 'Sport'])
+    df = customers
+    df1 = pd.DataFrame([[1, None, None],
+                        [20, None, None],
+                        [30, None, None]], columns=['Customer_ID', 'Name', 'Sport'])
     iterrows_start = time.time()
     _ = dm.update_using_iterrows(df1, df)
     iterrows_total = time.time() - iterrows_start
     assert iterrows_total < 50
+
+def test_customers_df(customers):
+    # testing the customers fixture
+    df = customers
+    assert 'Customer_ID' in df.columns
+   
+
