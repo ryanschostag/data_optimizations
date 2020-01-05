@@ -95,7 +95,7 @@ def test_update_using_iterrows(olympics):
     df1 = pd.DataFrame([[1896, None, None],
                         [1900, None, None],
                         [2008, None, None]], columns=['Edition', 'Athlete', 'Sport'])
-    _ = dm.update_using_iterrows(df1, olympics)
+    _ = dm.update_using_iterrows(df1, olympics, 'Edition', ['Athlete', 'Sport'])
     assert sorted(df1.columns) == ['Athlete', 'Edition', 'Sport']
     assert df1.Athlete.notnull().all()
     assert df1.Edition.notnull().all()
@@ -105,16 +105,25 @@ def test_update_using_iterrows(olympics):
 def test_updating_dataframe_with_values_of_another_dataframe(customers):
     """
     This tests the speeds of updating one dataframe with values from 
-    another dataframe. It uses iterrows/at, merge, and indexing
+    another dataframe, comparing the wall clock imes of iterrows and indexing
     """
     df = customers
-    df1 = pd.DataFrame([[1, None, None],
-                        [20, None, None],
-                        [30, None, None]], columns=['Customer_ID', 'Name', 'Sport'])
+    df1 = pd.DataFrame([[1, None, None, None],
+                        [20, None, None, None],
+                        [30, None, None, None]], 
+                        columns=['Customer_ID', 'Name', 'Latitude', 'Longitude'])
+
     iterrows_start = time.time()
-    _ = dm.update_using_iterrows(df1, df)
+    _ = dm.update_using_iterrows(df1, df, 'Customer_ID', ['Name', 'Latitude', 'Longitude'])
     iterrows_total = time.time() - iterrows_start
-    assert iterrows_total < 50
+    # 1.6359095573425293
+
+    indexing_start= time.time()
+    _ = dm.update_using_indexing(df1, df, 'Customer_ID')
+    indexing_total = time.time() - indexing_start
+    # 0.019296646118164062
+
+    assert iterrows_total > indexing_total 
 
 def test_customers_df(customers):
     # testing the customers fixture
