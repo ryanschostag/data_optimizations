@@ -4,6 +4,8 @@ Module for converting csv files to dataframes
 import os
 from glob import iglob
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 
 def csv_to_df(file='olympics.csv', skip=4):
@@ -18,4 +20,16 @@ def csv_to_df(file='olympics.csv', skip=4):
     else:
         print('none')
         return None
+
+
+def save_plot(pandas_series, output_path='./my_plot.png'):
+    # takes a pandas.Series, plots it,
+    # and saves a png of the plot
+    # If the series has a pandas.Series.name, it will print
+    # Returns the fig object
+    fig = plt.figure()
+    _ = fig.add_subplot(pandas_series.plot())
+    _ = fig.savefig(output_path)
+    print('pandas.Series.name of "%s" plotted and saved to "%s"' % (pandas_series.name, output_path))
+    return fig
 
